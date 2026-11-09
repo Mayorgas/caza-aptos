@@ -1,0 +1,342 @@
+<meta charset="utf-8">
+<title>Caza Aptos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: una sola columna de teléfono. Pila de tarjetas al centro, botones abajo, filtros en una hoja que se abre desde arriba. */
+:root{
+  --bg:#E8EEF1; --surface:#FFFFFF; --surface-2:#F2F6F8; --ink:#11262F; --ink-2:#4B6370; --line:#D3DEE3;
+  --accent:#0D6C76; --accent-ink:#FFFFFF; --like:#1E8A57; --pass:#C0453A; --warn:#9A6A00; --warn-bg:#FFF1CC;
+  --shadow:0 10px 30px rgba(17,38,47,.14);
+  --f-display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C1519; --surface:#14232A; --surface-2:#1B2F38; --ink:#E6F0F3; --ink-2:#9BB3BD; --line:#26404B;
+  --accent:#4FC3CE; --accent-ink:#062228; --like:#46C484; --pass:#EF7F73; --warn:#F1C25A; --warn-bg:#3A2F10;
+  --shadow:0 10px 30px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1519; --surface:#14232A; --surface-2:#1B2F38; --ink:#E6F0F3; --ink-2:#9BB3BD; --line:#26404B;
+  --accent:#4FC3CE; --accent-ink:#062228; --like:#46C484; --pass:#EF7F73; --warn:#F1C25A; --warn-bg:#3A2F10;
+  --shadow:0 10px 30px rgba(0,0,0,.5); color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.4;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:12px;display:flex;flex-direction:column;gap:10px;overflow-x:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+header{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+.tab{flex:1;white-space:nowrap}
+.brand{font-family:var(--f-display);font-weight:800;font-size:22px;letter-spacing:-.02em}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.brand small{display:inline;font-family:var(--f-body);font-weight:500;font-size:12px;color:var(--ink-2);letter-spacing:0}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.tab{border:0;background:transparent;padding:7px 12px;border-radius:999px;font-weight:600;font-size:13px;color:var(--ink-2)}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.tab b{font-variant-numeric:tabular-nums}
+
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:var(--ink-2)}
+.chipbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-weight:600;font-size:13px}
+.chipbtn[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+
+/* filtros */
+#filters{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:12px}
+#filters .row{display:grid;gap:6px}
+#filters label,#filters .lbl{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2)}
+#filters input[type=number],#filters select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--ink);font:inherit}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:6px 11px;font-size:13px;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.check{display:flex;align-items:center;gap:8px;text-transform:none!important;letter-spacing:0!important;font-size:14px!important;color:var(--ink)!important;font-weight:500!important}
+
+/* mazo */
+main{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px}
+#deck{position:relative;flex:1;min-height:380px}
+.card{position:absolute;inset:0;background:var(--surface);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.card.behind{transform:scale(.95) translateY(12px);opacity:.7;pointer-events:none}
+.photo{position:relative;flex:0 0 46%;min-height:150px;background:linear-gradient(135deg,var(--surface-2),var(--line));cursor:pointer}
+.photo img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.nophoto{position:absolute;inset:0;display:grid;place-items:center;color:var(--ink-2);font-size:13px}
+.dots{position:absolute;top:8px;left:12px;right:12px;display:flex;gap:4px}
+.dots i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.5)}
+.dots i.on{background:#fff}
+.tag-new{position:absolute;left:12px;bottom:10px;background:var(--accent);color:var(--accent-ink);font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px}
+.stamp{position:absolute;top:22px;font-family:var(--f-display);font-weight:800;font-size:28px;letter-spacing:.04em;border:4px solid;border-radius:10px;padding:2px 12px;opacity:0;transform:rotate(-12deg);background:rgba(255,255,255,.85)}
+.stamp.like{left:16px;color:var(--like)}
+.stamp.pass{right:16px;color:var(--pass);transform:rotate(12deg)}
+.info{flex:1;min-height:0;padding:14px 16px 12px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.price{font-family:var(--f-display);font-weight:800;font-size:30px;letter-spacing:-.02em;line-height:1}
+.price span{font-family:var(--f-body);font-weight:500;font-size:13px;color:var(--ink-2);letter-spacing:0;margin-left:6px}
+.place{font-weight:600}
+.place small{font-weight:400;color:var(--ink-2)}
+.facts{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--ink);font-size:14px}
+.facts b{font-weight:600}
+.badge{display:inline-block;font-size:12px;font-weight:600;padding:3px 8px;border-radius:8px;background:var(--warn-bg);color:var(--warn)}
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.desc{color:var(--ink-2);font-size:13.5px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tags span{font-size:12px;background:var(--surface-2);border:1px solid var(--line);padding:2px 8px;border-radius:6px;color:var(--ink-2)}
+.src{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--ink-2)}
+.src a{color:var(--accent);font-weight:600;text-decoration:none}
+
+.actions{display:flex;justify-content:center;align-items:center;gap:18px;padding-bottom:2px}
+.round{width:64px;height:64px;border-radius:50%;border:2px solid;background:var(--surface);font-size:26px;line-height:1;display:grid;place-items:center;box-shadow:var(--shadow)}
+.round.pass{color:var(--pass);border-color:var(--pass)}
+.round.like{color:var(--like);border-color:var(--like)}
+.round.small{width:44px;height:44px;font-size:18px;color:var(--ink-2);border-color:var(--line)}
+.round:disabled{opacity:.35;cursor:default}
+.empty{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:8px;padding:24px;color:var(--ink-2)}
+.empty h2{font-family:var(--f-display);font-size:24px;color:var(--ink);margin:0}
+
+/* listas */
+.list{display:grid;gap:10px;align-content:start;overflow-y:auto;min-height:0}
+.item{display:grid;grid-template-columns:84px minmax(0,1fr);gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px}
+.item .th{width:84px;height:84px;border-radius:10px;background:var(--surface-2);overflow:hidden}
+.item .th img{width:100%;height:100%;object-fit:cover;display:block}
+.item h3{margin:0;font-size:15px;font-family:var(--f-display)}
+.item p{margin:2px 0 0;color:var(--ink-2);font-size:13px}
+.item .ctl{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.item select{padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font:inherit;font-size:13px;min-width:0}
+.item .btn{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:7px 10px;font-size:13px;font-weight:600;text-decoration:none;color:var(--ink)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+@media (min-width:700px){body{max-width:520px;margin-inline:auto}}
+</style>
+
+<header>
+  <div class="brand">Caza Aptos<small id="subtitle">Norte de Bogotá · hasta $1.800.000 con admin</small></div>
+  <nav class="tabs" role="tablist" aria-label="Secciones">
+    <button class="tab" role="tab" id="t-deck" aria-selected="true">Ver</button>
+    <button class="tab" role="tab" id="t-likes" aria-selected="false">Me gustan <b id="n-likes">0</b></button>
+    <button class="tab" role="tab" id="t-passes" aria-selected="false">Descartados</button>
+  </nav>
+</header>
+
+<div class="bar" id="bar">
+  <span id="count" class="num">Cargando…</span>
+  <button class="chipbtn" id="btn-filters" aria-expanded="false" aria-controls="filters">Filtros</button>
+</div>
+
+<section id="filters" hidden>
+  <div class="row"><label for="f-max">Tope mensual con administración (COP)</label>
+    <input id="f-max" type="number" step="50000" min="500000" max="5000000"></div>
+  <div class="row"><span class="lbl">Localidad</span><div class="chips" id="f-loc"></div></div>
+  <div class="two">
+    <div class="row"><label for="f-habs">Habitaciones mín.</label>
+      <select id="f-habs"><option value="0">Cualquiera</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option></select></div>
+    <div class="row"><label for="f-area">Área mín. (m²)</label>
+      <input id="f-area" type="number" step="5" min="0" max="200"></div>
+  </div>
+  <div class="two">
+    <div class="row"><label for="f-sort">Orden</label>
+      <select id="f-sort"><option value="nuevo">Más recientes</option><option value="barato">Más baratos</option><option value="grande">Más grandes</option></select></div>
+    <div class="row"><label for="f-estrato">Estrato mín.</label>
+      <select id="f-estrato"><option value="0">Cualquiera</option><option value="3">3+</option><option value="4">4+</option></select></div>
+  </div>
+  <label class="check"><input type="checkbox" id="f-admin"> Solo avisos con administración confirmada</label>
+  <label class="check"><input type="checkbox" id="f-park"> Solo con parqueadero</label>
+</section>
+
+<main id="main">
+  <div id="deck" aria-live="polite"></div>
+  <div class="actions" id="actions">
+    <button class="round small" id="b-undo" aria-label="Deshacer" title="Deshacer">↶</button>
+    <button class="round pass" id="b-pass" aria-label="Descartar">✕</button>
+    <button class="round like" id="b-like" aria-label="Me gusta">♥</button>
+  </div>
+  <div class="list" id="likes" hidden></div>
+  <div class="list" id="passes" hidden></div>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+const LOC_NAMES={'usaquen':'Usaquén','chapinero':'Chapinero','suba':'Suba','barrios-unidos':'Barrios Unidos','teusaquillo':'Teusaquillo'};
+const STATUSES=['Por contactar','Contactado','Visita agendada','Descartado tras contacto'];
+const COP=new Intl.NumberFormat('es-CO');
+const $=id=>document.getElementById(id);
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+let all=[], decisions=LS.get('ca.dec',{}), history=LS.get('ca.hist',[]);
+let F=Object.assign({max:1800000,locs:[],habs:0,area:0,estrato:0,sort:'nuevo',adminOk:false,park:false},LS.get('ca.f',{}));
+let tab='deck', photoIdx=0, queue=[];
+
+const money=n=>'$'+COP.format(n);
+const locName=s=>LOC_NAMES[s]||s;
+function days(d){const t=new Date(d+'T12:00:00');return Math.max(0,Math.round((Date.now()-t)/864e5))}
+function ago(d){const n=days(d);return n===0?'hoy':n===1?'ayer':'hace '+n+' días'}
+function areaDudosa(x){return !x.area||x.area<12||x.area>250}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),1800)}
+
+/* limpieza: avisos repetidos del mismo edificio, precio y tipo se agrupan */
+function dedupe(items){
+  const seen=new Map(),out=[];
+  for(const x of items){
+    const k=[x.lat&&x.lat.toFixed(4),x.lng&&x.lng.toFixed(4),x.total,x.habs,x.area].join('|');
+    if(seen.has(k)){seen.get(k).repetidos=(seen.get(k).repetidos||0)+1;continue}
+    seen.set(k,x);out.push(x);
+  }
+  return out;
+}
+function passes(x){
+  if(x.total>F.max) return false;
+  if(F.locs.length&&!F.locs.includes(x.localidad)) return false;
+  if(F.habs&&(x.habs||0)<F.habs) return false;
+  if(F.area&&!areaDudosa(x)&&x.area<F.area) return false;
+  if(F.estrato&&(x.estrato||0)<F.estrato) return false;
+  if(F.adminOk&&!x.admin_conocida) return false;
+  if(F.park&&!x.parqueaderos) return false;
+  return true;
+}
+function sorter(){
+  if(F.sort==='barato') return (a,b)=>a.total-b.total;
+  if(F.sort==='grande') return (a,b)=>(areaDudosa(b)?0:b.area)-(areaDudosa(a)?0:a.area);
+  return (a,b)=>(b.actualizado||'').localeCompare(a.actualizado||'')||(b.primera_vez||'').localeCompare(a.primera_vez||'');
+}
+function rebuild(){
+  queue=all.filter(x=>!decisions[x.id]&&passes(x)).sort(sorter());
+  photoIdx=0; render();
+}
+
+/* tarjeta */
+function cardHTML(x,top){
+  const foto=x.fotos&&x.fotos[0];
+  const warns=[];
+  if(!x.admin_conocida) warns.push('Admin sin confirmar');
+  if(areaDudosa(x)) warns.push('Área por confirmar');
+  if(x.repetidos) warns.push('+'+x.repetidos+' aviso'+(x.repetidos>1?'s':'')+' igual'+(x.repetidos>1?'es':''));
+  const nuevo=days(x.publicado||x.actualizado)<=3;
+  const dots=top&&x.fotos&&x.fotos.length>1?'<div class="dots">'+x.fotos.map((_,i)=>'<i class="'+(i===0?'on':'')+'"></i>').join('')+'</div>':'';
+  return '<div class="photo">'+(foto?'<img src="'+foto+'" alt="Foto del apartamento en '+x.barrio+'" referrerpolicy="no-referrer">':'<div class="nophoto">Sin foto</div>')+dots+
+    (nuevo?'<span class="tag-new">Nuevo</span>':'')+'<div class="stamp like">ME GUSTA</div><div class="stamp pass">NO</div></div>'+
+    '<div class="info"><div class="price num">'+money(x.total)+'<span>'+(x.admin_conocida?'con admin'+(x.admin?' ('+money(x.admin)+')':''):'arriendo')+'</span></div>'+
+    '<div class="place">'+x.barrio+' <small>· '+locName(x.localidad)+(x.estrato?' · estrato '+x.estrato:'')+'</small></div>'+
+    '<div class="facts num"><span><b>'+(x.habs||'?')+'</b> hab</span><span><b>'+(x.banos||'?')+'</b> baño'+(x.banos>1?'s':'')+'</span><span><b>'+(areaDudosa(x)?'?':x.area)+'</b> m²</span>'+
+    (x.piso?'<span>piso <b>'+x.piso+'</b></span>':'')+'<span>'+(x.parqueaderos?'<b>'+x.parqueaderos+'</b> parq.':'sin parq.')+'</span></div>'+
+    (warns.length?'<div class="badges">'+warns.map(w=>'<span class="badge">'+w+'</span>').join('')+'</div>':'')+
+    '<div class="desc">'+esc(x.desc||'')+'</div>'+
+    '<div class="tags">'+(x.extras||[]).slice(0,4).map(e=>'<span>'+esc(e)+'</span>').join('')+'</div>'+
+    '<div class="src"><span>'+x.fuente+' · '+ago(x.actualizado)+'</span><a href="'+x.url+'" target="_blank" rel="noopener">Ver aviso ↗</a></div></div>';
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+function render(){
+  $('n-likes').textContent=Object.values(decisions).filter(d=>d.d==='like').length;
+  const deck=$('deck');
+  if(tab==='deck'){
+    $('count').textContent=queue.length?queue.length+' por revisar':'Al día';
+    deck.innerHTML='';
+    if(!queue.length){
+      deck.innerHTML='<div class="empty"><h2>No hay más por hoy</h2><p>Los avisos nuevos que cumplan tus filtros aparecen aquí cuando se actualice la lista. Mientras tanto, revisa tus favoritos y contacta a los propietarios.</p></div>';
+    }else{
+      if(queue[1]){const b=document.createElement('div');b.className='card behind';b.innerHTML=cardHTML(queue[1],false);deck.appendChild(b)}
+      const c=document.createElement('article');c.className='card';c.dataset.id=queue[0].id;c.innerHTML=cardHTML(queue[0],true);deck.appendChild(c);
+      wire(c,queue[0]);
+      c.querySelectorAll('img').forEach(im=>im.addEventListener('error',()=>{im.replaceWith(Object.assign(document.createElement('a'),{className:'nophoto',href:queue[0].url,target:'_blank',rel:'noopener',textContent:'Ver fotos en el aviso ↗',style:'color:var(--accent);font-weight:600;text-decoration:none'}))}));
+    }
+    $('b-pass').disabled=$('b-like').disabled=!queue.length;
+    $('b-undo').disabled=!history.length;
+  }
+  if(tab==='likes') renderList('likes','like');
+  if(tab==='passes') renderList('passes','pass');
+}
+
+function renderList(el,kind){
+  const rows=all.filter(x=>decisions[x.id]&&decisions[x.id].d===kind).sort((a,b)=>decisions[b.id].t-decisions[a.id].t);
+  const box=$(el);
+  $('count').textContent=rows.length+(kind==='like'?' favoritos':' descartados');
+  if(!rows.length){box.innerHTML='<p style="color:var(--ink-2)">'+(kind==='like'?'Todavía no hay favoritos. Desliza a la derecha o toca ♥ en los que te gusten.':'Nada descartado todavía.')+'</p>';return}
+  box.innerHTML=rows.map(x=>{
+    const d=decisions[x.id];
+    return '<div class="item" data-id="'+x.id+'"><div class="th">'+(x.fotos&&x.fotos[0]?'<img src="'+x.fotos[0]+'" alt="" referrerpolicy="no-referrer">':'')+'</div>'+
+    '<div style="min-width:0"><h3 class="num">'+money(x.total)+' · '+x.barrio+'</h3><p>'+(x.habs||'?')+' hab · '+(areaDudosa(x)?'? ':x.area+' ')+'m² · '+locName(x.localidad)+(x.admin_conocida?'':' · admin sin confirmar')+'</p></div>'+
+    '<div class="ctl">'+
+    (kind==='like'?'<select aria-label="Estado" data-act="status">'+STATUSES.map(s=>'<option'+(d.status===s?' selected':'')+'>'+s+'</option>').join('')+'</select>'+
+      '<button class="btn" data-act="msg">Copiar mensaje</button>':'<button class="btn" data-act="restore">Recuperar</button>')+
+    '<a class="btn" href="'+x.url+'" target="_blank" rel="noopener">Abrir aviso ↗</a>'+
+    (kind==='like'?'<button class="btn" data-act="drop">Quitar</button>':'')+'</div></div>';
+  }).join('');
+}
+
+/* decisiones */
+function decide(kind,x,card){
+  decisions[x.id]={d:kind,t:Date.now(),status:'Por contactar'};
+  history.push(x.id); history=history.slice(-30);
+  LS.set('ca.dec',decisions);LS.set('ca.hist',history);
+  const done=()=>{queue.shift();photoIdx=0;render()};
+  if(card){card.style.transition='transform .22s ease-out, opacity .22s';card.style.transform='translateX('+(kind==='like'?'':'-')+'120%) rotate('+(kind==='like'?18:-18)+'deg)';card.style.opacity='0';
+    const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;setTimeout(done,reduce?0:200)}else done();
+}
+function wire(card,x){
+  const sL=card.querySelector('.stamp.like'),sP=card.querySelector('.stamp.pass'),photo=card.querySelector('.photo');
+  let sx=0,dx=0,drag=false,moved=false;
+  card.addEventListener('pointerdown',e=>{if(e.target.closest('a'))return;drag=true;moved=false;sx=e.clientX;dx=0;card.setPointerCapture(e.pointerId);card.style.transition='none'});
+  card.addEventListener('pointermove',e=>{if(!drag)return;dx=e.clientX-sx;if(Math.abs(dx)>6)moved=true;
+    card.style.transform='translateX('+dx+'px) rotate('+(dx/20)+'deg)';
+    sL.style.opacity=Math.min(1,Math.max(0,dx/110));sP.style.opacity=Math.min(1,Math.max(0,-dx/110))});
+  const end=e=>{if(!drag)return;drag=false;
+    if(dx>110)return decide('like',x,card);
+    if(dx<-110)return decide('pass',x,card);
+    card.style.transition='transform .18s';card.style.transform='';sL.style.opacity=sP.style.opacity=0;
+    if(!moved&&photo.contains(e.target)&&x.fotos&&x.fotos.length>1){
+      const r=photo.getBoundingClientRect();photoIdx=(photoIdx+(e.clientX-r.left<r.width/3?-1:1)+x.fotos.length)%x.fotos.length;
+      photo.querySelector('img')&&(photo.querySelector('img').src=x.fotos[photoIdx]);
+      photo.querySelectorAll('.dots i').forEach((d,i)=>d.classList.toggle('on',i===photoIdx));
+    }};
+  card.addEventListener('pointerup',end);card.addEventListener('pointercancel',end);
+}
+function act(kind){if(!queue.length)return;decide(kind,queue[0],$('deck').querySelector('.card:not(.behind)'))}
+$('b-like').onclick=()=>act('like');$('b-pass').onclick=()=>act('pass');
+$('b-undo').onclick=()=>{const id=history.pop();if(!id)return;delete decisions[id];LS.set('ca.dec',decisions);LS.set('ca.hist',history);rebuild();toast('Deshecho')};
+document.addEventListener('keydown',e=>{if(tab!=='deck'||e.target.matches('input,select'))return;if(e.key==='ArrowRight')act('like');if(e.key==='ArrowLeft')act('pass')});
+
+/* listas */
+function listClick(e){
+  const row=e.target.closest('.item');if(!row)return;const id=row.dataset.id,x=all.find(a=>a.id===id);const a=e.target.dataset.act;
+  if(a==='restore'||a==='drop'){delete decisions[id];LS.set('ca.dec',decisions);rebuild();toast(a==='drop'?'Quitado de favoritos':'Vuelve a la pila')}
+  if(a==='msg'){
+    const m='Hola, buenas. Vi su aviso del apartamento en '+x.barrio+' publicado en '+x.fuente+' ('+x.url+'). ¿Sigue disponible? ¿La administración está incluida en el valor? ¿Cuál es el depósito y el contrato mínimo? ¿Podríamos agendar una visita esta semana? Gracias.';
+    (navigator.clipboard&&navigator.clipboard.writeText(m).then(()=>toast('Mensaje copiado'),()=>prompt0(m))) || prompt0(m);
+  }
+}
+function prompt0(m){const ta=document.createElement('textarea');ta.value=m;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Mensaje copiado')}catch(e){toast('No se pudo copiar')}ta.remove()}
+['likes','passes'].forEach(id=>{$(id).addEventListener('click',listClick);$(id).addEventListener('change',e=>{if(e.target.dataset.act==='status'){const r=e.target.closest('.item').dataset.id;decisions[r].status=e.target.value;LS.set('ca.dec',decisions)}})});
+
+/* pestañas */
+function setTab(t){
+  tab=t;
+  [['deck','t-deck'],['likes','t-likes'],['passes','t-passes']].forEach(([k,id])=>$(id).setAttribute('aria-selected',String(k===t)));
+  $('deck').hidden=$('actions').hidden=t!=='deck';$('likes').hidden=t!=='likes';$('passes').hidden=t!=='passes';
+  $('btn-filters').hidden=t!=='deck'; if(t!=='deck')$('filters').hidden=true;
+  render();
+}
+$('t-deck').onclick=()=>setTab('deck');$('t-likes').onclick=()=>setTab('likes');$('t-passes').onclick=()=>setTab('passes');
+
+/* filtros */
+$('btn-filters').onclick=()=>{const h=$('filters').hidden;$('filters').hidden=!h;$('btn-filters').setAttribute('aria-expanded',String(h))};
+function syncFilters(){
+  $('f-max').value=F.max;$('f-habs').value=F.habs;$('f-area').value=F.area||'';$('f-estrato').value=F.estrato;$('f-sort').value=F.sort;$('f-admin').checked=F.adminOk;$('f-park').checked=F.park;
+  const locs=[...new Set(all.map(x=>x.localidad))].sort();
+  $('f-loc').innerHTML=locs.map(l=>'<button class="chip" data-l="'+l+'" aria-pressed="'+(F.locs.includes(l)||!F.locs.length)+'">'+locName(l)+'</button>').join('');
+  $('subtitle').textContent='Norte de Bogotá · hasta '+money(F.max)+' con admin';
+}
+$('f-loc').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;const all_=[...$('f-loc').children].map(c=>c.dataset.l);
+  let cur=F.locs.length?F.locs:all_.slice();cur=cur.includes(b.dataset.l)?cur.filter(l=>l!==b.dataset.l):cur.concat(b.dataset.l);
+  F.locs=cur.length===all_.length||!cur.length?[]:cur;save()};
+function save(){F.max=+$('f-max').value||1800000;F.habs=+$('f-habs').value;F.area=+$('f-area').value||0;F.estrato=+$('f-estrato').value;F.sort=$('f-sort').value;F.adminOk=$('f-admin').checked;F.park=$('f-park').checked;LS.set('ca.f',F);syncFilters();rebuild()}
+['f-max','f-habs','f-area','f-estrato','f-sort','f-admin','f-park'].forEach(id=>$(id).addEventListener('change',save));
+
+/* datos */
+fetch('listings.json').then(r=>r.json()).then(d=>{
+  all=dedupe(d.items||[]);
+  syncFilters();setTab('deck');rebuild();
+}).catch(()=>{$('count').textContent='No se pudo cargar listings.json'});
+})();
+</script>
